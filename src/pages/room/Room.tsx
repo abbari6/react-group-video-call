@@ -1,13 +1,13 @@
 import Peer, { MediaConnection } from "peerjs";
 import { FC, useEffect, useMemo, useRef, useState } from "react"
-import { useRouteMatch } from "react-router";
 import io from "socket.io-client";
 import { v4 as uuid } from "uuid"
 import useClipboard from "react-use-clipboard";
+import { useParams } from "react-router-dom";
 
 export const Room: FC = () => {
 
-  const { params } = useRouteMatch<{ room: string }>()
+  const { scenarioId } = useParams();
 
   const [, setCopied] = useClipboard(window.location.href);
 
@@ -23,7 +23,7 @@ export const Room: FC = () => {
   const [mute, setMute] = useState(false)
   const [blind, setBlind] = useState(false)
   const token = localStorage.getItem('token');
-  const url = `http://localhost:3001/scenario?scenarioId=${params.room}`;
+  const url = `http://localhost:3001/scenario?scenarioId=${scenarioId}`;
 
   const socket = useMemo(() => io(url, { transports: ["websocket"], withCredentials: true, auth:{token} }), [])
 
@@ -31,7 +31,7 @@ export const Room: FC = () => {
 
     const onOpen = (id: string): void => {
       console.log(`Peer Connection Open: ${id}`)
-      const payload = {roomId: params.room, peerId: id}
+      const payload = {roomId: scenarioId, peerId: id}
       socket.emit('join-room', payload);
     };
     const onPeerError: (err: any) => void = (err) => {
@@ -95,7 +95,7 @@ export const Room: FC = () => {
             connectToNewUser(userId, stream);
           }
         })
-        const payload = {roomId: params.room, peerId: peer.id}
+        const payload = {roomId: scenarioId, peerId: peer.id}
         socket.emit('connection-request', payload);
       })
       return () => {

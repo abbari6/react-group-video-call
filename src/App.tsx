@@ -1,17 +1,15 @@
-import { Route, Switch } from 'react-router'
-import { CreateRoom } from './pages/start/CreateRoom'
+import { Route, Routes } from 'react-router'
+import { Scenarios } from './pages/start/Scenarios'
 import { Room } from './pages/room/Room'
+import Login from './pages/login/login'
 
 function App() {
   return (
-    <Switch>
-      <Route path="/" exact>
-        <CreateRoom />
-      </Route>
-      <Route path="/:room">
-        <Room />
-      </Route>
-    </Switch>
+    <Routes>
+    <Route path="/" element={<Login />} />
+    <Route path="/scenario" element={<Scenarios />} />
+    <Route path="/room/:scenarioId" element={<Room />} />
+  </Routes>
   )
 }
 
