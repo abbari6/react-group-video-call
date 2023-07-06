@@ -11,7 +11,10 @@ export const Room: FC = () => {
   const [x2, setX2] = useState(0);
   const [y2, setY2] = useState(0);
   const { scenarioId } = useParams();
-
+  const [tableData, setTableData] = useState<any[]>([]);
+  const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
+  const [time, settime] = useState("");
   const [, setCopied] = useClipboard(window.location.href);
 
   const [peers, setPeers] = useState<{ id: string; call: MediaConnection }[]>(
@@ -167,7 +170,7 @@ export const Room: FC = () => {
     const y = event.clientY;
     socket.emit("moveIcon2", { x, y, roomId: scenarioId });
   }
-  
+
   useEffect(() => {
     socket.on("moveIcon", (data) => {
       console.log(data);
@@ -182,11 +185,36 @@ export const Room: FC = () => {
     });
   }, []);
 
+  useEffect(() => {
+    socket.on("newKeyEvent", (data) => {
+      setTableData((prevData) => [...prevData, data]);
+    });
+  }, []);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    // Emit socket event with form values
+    const formData = {
+      name,
+      bio,
+      time,
+    };
+    const payload = {
+      tableData: formData,
+      roomId: scenarioId,
+    };
+    socket.emit("insertKeyEventData", payload);
+    // Reset form fields
+    setName("");
+    setBio("");
+    settime("");
+  };
+
   return (
     <>
       <div className="flex flex-row justify-between p-2">
         <div className="w-8/12 px-2 flex ">
-          
           <div
             className=""
             onDragEnd={handleDragEnd}
@@ -222,7 +250,7 @@ export const Room: FC = () => {
         </div>
       </div>
 
-      <div className="flex flex-row">
+      <div className="flex">
         <div
           className="playground w-7/12 h-72"
           style={{
@@ -230,26 +258,108 @@ export const Room: FC = () => {
               "url('https://img.freepik.com/free-photo/beautiful-view-greenery-bridge-forest-perfect-background_181624-17827.jpg?w=2000')",
           }}
         ></div>
-        <div
-          style={{ gridTemplateColumns: "repeat(auto-fill, 300px)" }}
-          className="grid auto-rows-[300px] gap-1 m-2"
-        >
-          {!blind ? (
-            <video
-              ref={userVideoRef}
-              autoPlay
-              muted
-              className="w-full h-full object-cover rounded"
-            />
-          ) : (
-            <div className="w-full h-full object-cover rounded bg-gray-200" />
-          )}
-          {peers.map(({ id, call }) => (
-            <Video key={id} call={call} />
-          ))}
+<div className="flex">
+<div className="container mx-auto">
+          <div className="ml-10">
+            {" "}
+            <h4>Key Events</h4>
+          </div>
+          <table className="table-auto">
+            <thead>
+              <tr>
+                <th className="px-4 py-2">Name</th>
+                <th className="px-4 py-2">Bio</th>
+                <th className="px-4 py-2">Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tableData.map((entry, index) => (
+                <tr key={index}>
+                  <td className="border px-4 py-2">{entry.name}</td>
+                  <td className="border px-4 py-2">{entry.bio}</td>
+                  <td className="border px-4 py-2">{entry.time}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+        <div className="container mx-auto">
+          <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <label
+                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="name"
+              >
+                Name
+              </label>
+              <input
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="name"
+                type="text"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="bio"
+              >
+                Bio
+              </label>
+              <textarea
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="bio"
+                value={bio}
+                onChange={(event) => setBio(event.target.value)}
+              ></textarea>
+            </div>
+            <div className="mb-4">
+              <label
+                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="time"
+              >
+                time
+              </label>
+              <input
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="time"
+                type="text"
+                value={time}
+                onChange={(event) => settime(event.target.value)}
+              />
+            </div>
+            <div className="flex justify-end">
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                type="submit"
+              >
+                Submit
+              </button>
+            </div>
+          </form>
+        </div>
+</div>
+        
       </div>
-
+      <div
+        style={{ gridTemplateColumns: "repeat(auto-fill, 300px)" }}
+        className="grid auto-rows-[300px] gap-1 m-2"
+      >
+        {!blind ? (
+          <video
+            ref={userVideoRef}
+            autoPlay
+            muted
+            className="w-full h-full object-cover rounded"
+          />
+        ) : (
+          <div className="w-full h-full object-cover rounded bg-gray-200" />
+        )}
+        {peers.map(({ id, call }) => (
+          <Video key={id} call={call} />
+        ))}
+      </div>
       <section className="flex flex-col">
         <div className="absolute bottom-10 w-full space-x-2 flex justify-center">
           <button
