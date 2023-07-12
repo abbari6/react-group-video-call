@@ -16,9 +16,12 @@ const Login = () => {
     setPassword(event.target.value);
   };
 
+  // const host = 'http://128.199.25.163:3001'
+  const host = "http://localhost:3001";
+
   const handleLogin = () => {
     axios
-      .post('http://localhost:3001/api/v1/auth/email/login', { email, password })
+      .post(`${host}/api/v1/auth/email/login`, { email, password })
       .then((response:any) => {
         // Save the response in local storage
         localStorage.setItem('token', response.data.token);

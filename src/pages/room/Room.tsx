@@ -14,7 +14,6 @@ export const Room: FC = () => {
   const { scenarioId } = useParams();
   const [tableData, setTableData] = useState<any[]>([]);
   const [name, setName] = useState("");
-  const [bio, setBio] = useState("");
   const [time, settime] = useState("");
   const [, setCopied] = useClipboard(window.location.href);
 
