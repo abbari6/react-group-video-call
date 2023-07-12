@@ -4,6 +4,7 @@ import io from "socket.io-client";
 import { v4 as uuid } from "uuid";
 import useClipboard from "react-use-clipboard";
 import { useParams } from "react-router-dom";
+import axios from "axios";
 
 export const Room: FC = () => {
   const [x, setX] = useState(0);
@@ -29,6 +30,7 @@ export const Room: FC = () => {
         host: "localhost",
         port: 5000,
         path: "/chatroom",
+        key: "secret",
       }),
     []
   );
@@ -36,7 +38,8 @@ export const Room: FC = () => {
   const [mute, setMute] = useState(false);
   const [blind, setBlind] = useState(false);
   const token = localStorage.getItem("token");
-  const url = `http://localhost:3001/scenario?scenarioId=${scenarioId}`;
+  const host = 'http://localhost:3001'
+  const url = `${host}/scenario?scenarioId=${scenarioId}`;
 
   const socket = useMemo(
     () =>
@@ -149,7 +152,7 @@ export const Room: FC = () => {
     });
   };
 
-  console.table(peers);
+  // console.table(peers);
 
   const btnClasses = "bg-gray-100 text-gray-800 p-2 font-semibold rounded";
 
@@ -197,7 +200,7 @@ export const Room: FC = () => {
     // Emit socket event with form values
     const formData = {
       name,
-      bio,
+      scenarioid: parseInt(scenarioId),
       time,
     };
     const payload = {
@@ -207,9 +210,23 @@ export const Room: FC = () => {
     socket.emit("insertKeyEventData", payload);
     // Reset form fields
     setName("");
-    setBio("");
     settime("");
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${host}/api/key-event-logs?scenarioId=${scenarioId}`);
+        console.log(response.data);
+        setTableData(response.data); // Update the tableData state with the response data
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
 
   return (
     <>
@@ -258,89 +275,72 @@ export const Room: FC = () => {
               "url('https://img.freepik.com/free-photo/beautiful-view-greenery-bridge-forest-perfect-background_181624-17827.jpg?w=2000')",
           }}
         ></div>
-<div className="flex">
-<div className="container mx-auto">
-          <div className="ml-10">
-            {" "}
-            <h4>Key Events</h4>
-          </div>
-          <table className="table-auto">
-            <thead>
-              <tr>
-                <th className="px-4 py-2">Name</th>
-                <th className="px-4 py-2">Bio</th>
-                <th className="px-4 py-2">Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tableData.map((entry, index) => (
-                <tr key={index}>
-                  <td className="border px-4 py-2">{entry.name}</td>
-                  <td className="border px-4 py-2">{entry.bio}</td>
-                  <td className="border px-4 py-2">{entry.time}</td>
+        <div className="flex">
+          <div className="container mx-auto">
+            <div className="ml-10">
+              {" "}
+              <h4>Key Events</h4>
+            </div>
+            <table className="table-auto">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2">Name</th>
+                  <th className="px-4 py-2">Time</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {tableData.map((entry, index) => (
+                  <tr key={index}>
+                    <td className="border px-4 py-2">{entry.name}</td>
+                    <td className="border px-4 py-2">{entry.time}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="container mx-auto">
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                  htmlFor="name"
+                >
+                  Name
+                </label>
+                <input
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                />
+              </div>
+              <div className="mb-4">
+                <label
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                  htmlFor="time"
+                >
+                  time
+                </label>
+                <input
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  id="time"
+                  type="time"
+                  value={time}
+                  onChange={(event) => settime(event.target.value)}
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  type="submit"
+                >
+                  Submit
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div className="container mx-auto">
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label
-                className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="name"
-              >
-                Name
-              </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="name"
-                type="text"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </div>
-            <div className="mb-4">
-              <label
-                className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="bio"
-              >
-                Bio
-              </label>
-              <textarea
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="bio"
-                value={bio}
-                onChange={(event) => setBio(event.target.value)}
-              ></textarea>
-            </div>
-            <div className="mb-4">
-              <label
-                className="block text-gray-700 text-sm font-bold mb-2"
-                htmlFor="time"
-              >
-                time
-              </label>
-              <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="time"
-                type="text"
-                value={time}
-                onChange={(event) => settime(event.target.value)}
-              />
-            </div>
-            <div className="flex justify-end">
-              <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                type="submit"
-              >
-                Submit
-              </button>
-            </div>
-          </form>
-        </div>
-</div>
-        
       </div>
       <div
         style={{ gridTemplateColumns: "repeat(auto-fill, 300px)" }}

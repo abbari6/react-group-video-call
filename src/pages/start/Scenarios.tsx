@@ -6,12 +6,12 @@ export const Scenarios: FC = () => {
   const navigate = useNavigate();
   // Example list of available chat rooms
   const chatRooms = [
-    { id: '1', name: 'General Chat' },
-    { id: '2', name: 'Tech Discussion' },
-    { id: '3', name: 'Music Lovers' },
-    { id: '4', name: 'Movie Buffs' },
+    { id: 1, name: 'General Chat' },
+    { id: 2, name: 'Tech Discussion' },
+    { id: 3, name: 'Music Lovers' },
+    { id: 4, name: 'Movie Buffs' },
   ];
-  const handleJoinRoom = (roomId: string) => {
+  const handleJoinRoom = (roomId: number) => {
     const token = localStorage.getItem('token');
     navigate(`/room/${roomId}`)
 
